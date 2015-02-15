@@ -46,7 +46,7 @@ bundle common henc_cfg
     cfengine_36_or_later::
       "dir_inputs"
       	  comment => "Inputs directory",
-	  string  => "$(sys.inputsdir)" ;
+	  string  => "$(sys.inputdir)" ;
 
   classes:
       "cfengine_pre_36"

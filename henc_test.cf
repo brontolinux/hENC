@@ -1,0 +1,25 @@
+body common control
+{
+      inputs => {
+		  "enc.cf",
+		  "lib/henc_lib.cf",
+		  "test/lib.cf"
+      } ;
+
+      version => "hENC-v0.0.1" ;
+
+      bundlesequence => { "henc_test" } ;
+}
+
+
+bundle agent henc_test
+{
+  vars:
+    any::
+      "enclist" slist => { "test/henc_test" } ;
+
+  methods:
+      "henc"
+	  comment => "test ENC",
+	  usebundle => henc("henc_test.enclist") ;
+}
