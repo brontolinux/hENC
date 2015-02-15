@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+
+use strict ;
+use warnings ;
+
+my %class ;    # classes container
+my %variable ; # variables container
+
+# Silence errors (e.g.: missing files)
+close STDERR ;
+
+while (my $line = <>) {
+    chomp $line ;
+    my ($setting,$id) = ( $line =~ m{^\s*([=\@/+-_])(.+)\s*$} ) ;
+    next if not defined $setting ; # line didn't match the module protocol
+
+    # add a class
+    if ($setting eq '+') {
+	# $id is a class name, or should be.
+	$class{$id} = 1 ;
+    }
+
+    # undefine a class
+    if ($setting eq '-') {
+	# $id is a class name, or should be.
+	$class{$id} = -1 ;
+    }
+
+    # reset the status of a class
+    if ($setting eq '_') {
+	# $id is a class name, or should be.
+	delete $class{$id} if exists $class{$id} ;
+    }
+
+    # define a variable/list
+    if ($setting eq '=' or $setting eq '@') {
+	# $id is "variable = something", or should be
+	my ($varname)      = ( $id =~ m{^(.+?)=} ) ;
+	$variable{$varname} = $line ;
+    }
+
+    # reset a variable/list
+    if ($setting eq '/') {
+	# $id is "variable = something", or should be
+	delete $variable{$id} if exists $variable{$id} ;
+    }
+
+    # discard the rest
+}
+
+# print out classes
+foreach my $classname (keys %class) {
+    print "+$classname\n" if $class{$classname} > 0 ;
+    print "-$classname\n" if $class{$classname} < 0 ;
+}
+
+# print variable/list assignments, the last one wins
+foreach my $assignment (values %variable) {
+    print "$assignment\n" ;
+}

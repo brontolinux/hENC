@@ -1,0 +1,57 @@
+body copy_from digest_cp(from)
+# digest copy from policy hub
+{
+      servers     => { "$(sys.policy_hub)" } ;
+      source      => "$(from)" ;
+      compare     => "digest" ;
+      copy_backup => "false" ;
+
+  trust_servers_key::
+      trustkey    => "true" ;
+}
+
+
+body perms root_executable
+# equivalent to mog("0755","root","root")
+{
+          owners => { "root" };
+          groups => { "root" };
+          mode   => "0755";
+}
+
+
+bundle common henc_cfg
+# configuration for bundle agent henc; edit the variables in this file
+# to suit your needs
+{
+  vars:
+    any::
+      "local_modules"
+	  comment => "Local directory for modules",
+	  string  => "$(def.dir_modules)" ;
+
+      "master_modules"
+	  comment => "Source directory for modules",
+	  string  => translatepath("$(def.dir_masterfiles)/modules") ;
+
+      "enc_basedir"
+	  comment => "Base directory for ENC files",
+	  string  => "$(def.dir_masterfiles)" ;
+
+    cfengine_pre_36::
+      "dir_inputs"
+	  comment => "Inputs directory",
+	  string  => translatepath("$(sys.workdir)/inputs") ;
+
+    cfengine_36_or_later::
+      "dir_inputs"
+      	  comment => "Inputs directory",
+	  string  => "$(sys.inputsdir)" ;
+
+  classes:
+      "cfengine_pre_36"
+	  expression => classmatch("cfengine_3_[012345]") ;
+
+      "cfengine_36_or_later"
+	  not => "cfengine_pre_36" ;
+}

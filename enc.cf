@@ -1,0 +1,53 @@
+bundle agent henc(enclist_name)
+########################################################################
+# External node classification (ENC)
+#
+# This bundle takes a list *name* as argument, where the list contains
+# a set of files that will be fetched and merged in that order to
+# classify the node and apply other settings.
+#
+# The course of action is:
+# - the bundle is called with a $(enclist_name) argument
+# - we go through the list and try to fetch every file in the list to
+#   keep a local cache
+# - the list is passed to the henc command module which will merge the
+#   settings found in the files and return the final result in a format
+#   compliant with the module protocol
+#
+# The bundle gets its configuration from variables defined in a bundle
+# called site. In our policy it is a bundle common. The variables from
+########################################################################
+{
+  vars:
+    henc_has_list::
+      "enclist"      slist  => { "@($(enclist_name))" } ;
+      "enc_fullpath" slist  => maplist("$(site.inputs)/$(this)","enclist") ;
+      "encargs"      string => join(" ","enc_fullpath") ;
+
+  classes:
+      "henc_has_list" expression => isvariable("enclist_name") ;
+      "henc_has_args" expression => isvariable("encargs") ;
+      "henc_can_classify"    and => { "henc_has_list","henc_has_args" } ;
+
+
+  files:
+    any::
+      "$(henc_cfg.local_modules)/henc"
+	  comment   => "Copy/update hierarchical merger",
+	  copy_from => digest_cp("$(henc_cfg.master_modules)/henc"),
+	  perms     => root_executable ;
+
+    henc_has_list::
+      "$(henc_cfg.dir_inputs)/$(enclist)"
+	  comment   => "Cache ENC file $(enclist) locally",
+	  copy_from => digest_cp("$(henc_cfg.enc_basedir)/$(enclist)") ;
+
+
+  commands:
+    henc_can_classify.!henc_classes_activated::
+      "$(henc_cfg.local_modules)/henc"
+	  comment    => "Hierarchical classification for $(sys.fqhost)",
+	  args       => "$(encargs)",
+	  classes    => always("henc_classes_activated"),
+	  module     => "true" ;
+}
