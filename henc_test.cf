@@ -8,9 +8,18 @@ body common control
 
       version => "hENC-v0.0.1" ;
 
-      bundlesequence => { "henc_test" } ;
+      bundlesequence => { "prepare_henc_test",
+			  "henc_cfg",
+			  "henc_test" } ;
 }
 
+bundle common prepare_henc_test
+{
+  classes:
+      "is_running_henc_tests"
+	  comment    => "Signal to henc_cfg we are running a test",
+	  expression => "any" ;
+}
 
 bundle agent henc_test
 {

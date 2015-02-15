@@ -14,15 +14,21 @@ bundle agent henc(enclist_name)
 #   settings found in the files and return the final result in a format
 #   compliant with the module protocol
 #
-# The bundle gets its configuration from variables defined in a bundle
-# called site. In our policy it is a bundle common. The variables from
 ########################################################################
 {
   vars:
     henc_has_list::
-      "enclist"      slist  => { "@($(enclist_name))" } ;
-      "enc_fullpath" slist  => maplist("$(site.inputs)/$(this)","enclist") ;
-      "encargs"      string => join(" ","enc_fullpath") ;
+      "enclist"
+	  comment => "Expand list locally",
+	  slist   => { "@($(enclist_name))" } ;
+
+      "enc_fullpath"
+	  comment => "Complete the file names with the full path",
+	  slist   => maplist("$(henc_cfg.local_enc)/$(this)","enclist") ;
+
+      "encargs"
+	  comment => "Join the list in a single string",
+	  string  => join(" ","enc_fullpath") ;
 
   classes:
       "henc_has_list" expression => isvariable("enclist_name") ;
@@ -38,9 +44,9 @@ bundle agent henc(enclist_name)
 	  perms     => root_executable ;
 
     henc_has_list::
-      "$(henc_cfg.dir_inputs)/$(enclist)"
+      "$(henc_cfg.local_enc)/$(enclist)"
 	  comment   => "Cache ENC file $(enclist) locally",
-	  copy_from => digest_cp("$(henc_cfg.enc_basedir)/$(enclist)") ;
+	  copy_from => digest_cp("$(henc_cfg.master_enc)/$(enclist)") ;
 
 
   commands:
