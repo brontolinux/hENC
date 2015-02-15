@@ -1,2 +1,3 @@
 # hENC
-An External Node Classifier (ENC) for CFEngine
+
+A hierachical External Node Classifier (ENC) for CFEngine
