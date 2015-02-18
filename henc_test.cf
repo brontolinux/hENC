@@ -1,9 +1,9 @@
 body common control
 {
       inputs => {
-		  "enc.cf",
+		  "module/enc.cf",
 		  "lib/henc_lib.cf",
-		  "test/lib.cf"
+		  "lib/henc_cfg_test.cf",
       } ;
 
       version => "hENC-v0.0.1" ;
@@ -25,7 +25,7 @@ bundle agent henc_test
 {
   vars:
     any::
-      "enclist" slist => { "test/henc_test" } ;
+      "enclist" slist => { "henc_test" } ;
 
   methods:
       "henc"
