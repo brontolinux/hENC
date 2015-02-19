@@ -2,23 +2,12 @@ body common control
 {
       inputs => {
 		  "module/enc.cf",
-		  "lib/henc_lib.cf",
 		  "lib/henc_cfg_test.cf",
       } ;
 
       version => "hENC-v0.0.1" ;
 
-      bundlesequence => { "prepare_henc_test",
-			  "henc_cfg",
-			  "henc_test" } ;
-}
-
-bundle common prepare_henc_test
-{
-  classes:
-      "is_running_henc_tests"
-	  comment    => "Signal to henc_cfg we are running a test",
-	  expression => "any" ;
+	  bundlesequence => { "henc_cfg", "henc_test" } ;
 }
 
 bundle agent henc_test
@@ -27,8 +16,56 @@ bundle agent henc_test
     any::
       "enclist" slist => { "henc_test" } ;
 
+  classes:
+    any::
+      "pass_3_reached" expression => "pass_2_reached" ;
+      "pass_2_reached" expression => "pass_1_reached" ;
+      "pass_1_reached" expression => "any" ;
+
+      "henc_test_scalar_ok"
+	  expression => regcmp("hENC test","$(henc.test_scalar)") ;
+
+      "all_tests_ok"
+	  and => { "global_class_to_be_set_by_henc",
+		   "!global_class_to_be_cancelled_by_henc",
+		   "henc_test_scalar_ok" } ;
+
+  files:
+    any::
+      "$(henc_cfg.testdir)/."
+	  create => "yes" ;
+      
+
   methods:
       "henc"
 	  comment => "test ENC",
 	  usebundle => henc("henc_test.enclist") ;
+
+  reports:
+    global_class_to_be_set_by_henc::
+      "OK - global class set by henc found" ;
+
+    !global_class_to_be_set_by_henc::
+      "NOT OK - global class set by henc not found" ;
+
+    global_class_to_be_cancelled_by_henc::
+      "NOT OK - global class not cancelled by henc found" ;
+
+    !global_class_to_be_cancelled_by_henc::
+      "OK - global class correctly cancelled by henc" ;
+
+    pass_2_reached.henc_test_scalar_ok::
+      "OK - test scalar has the expected value" ;
+
+    pass_2_reached.!henc_test_scalar_ok::
+      "NOT OK - test scalar has not the expected value" ;
+
+    pass_3_reached::
+      "-----------------------------------------------" ;
+
+    pass_3_reached.all_tests_ok::
+      "FINAL RESULT: ALL TESTS SUCCESSFUL!" ;
+
+    pass_3_reached.!all_tests_ok::
+      "FINAL RESULT: Some tests failed :-(" ;
 }

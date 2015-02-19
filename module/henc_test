@@ -1,0 +1,3 @@
++global_class_to_be_set_by_henc
+-global_class_to_be_cancelled_by_henc
+=test_scalar=hENC test
