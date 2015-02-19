@@ -26,7 +26,7 @@ bundle common henc_cfg
 
       "master_enc"
 	  comment => "Base directory for ENC files",
-	  string  => "$(basedir)/module" ;
+	  string  => "$(basedir)/tlib" ;
 
 
   classes:

@@ -2,7 +2,7 @@ body common control
 {
       inputs => {
 		  "module/enc.cf",
-		  "lib/henc_cfg_test.cf",
+		  "tlib/henc_cfg_test.cf",
       } ;
 
       version => "hENC-v0.0.1" ;
