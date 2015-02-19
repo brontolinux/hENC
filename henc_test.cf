@@ -14,7 +14,7 @@ bundle agent henc_test
 {
   vars:
     any::
-      "enclist" slist => { "henc_test" } ;
+      "enclist" slist => { "henc_set","henc_override" } ;
 
   classes:
     any::
@@ -28,12 +28,24 @@ bundle agent henc_test
       "all_tests_ok"
 	  and => { "global_class_to_be_set_by_henc",
 		   "!global_class_to_be_cancelled_by_henc",
-		   "henc_test_scalar_ok" } ;
+		   "!global_class_to_be_lowered",
+		   "henc_test_scalar_ok",
+		   "henc_test_list_ok" } ;
+
+    pass_2_reached::
+      # must not evaluate before henc runs...
+      "henc_test_list_ok"
+	  comment => "list must not be set",
+	  not => isvariable("henc.test_list") ;
 
   files:
-    any::
+    !pass_2_reached::
+      # this must run only at pass 1, to prepare for the tests
       "$(henc_cfg.testdir)/."
+	  comment => "Prepare test directory",
 	  create => "yes" ;
+
+      "$(henc_cfg.testdir)/$(enclist)" delete => tidy ;
       
 
   methods:
@@ -43,22 +55,34 @@ bundle agent henc_test
 
   reports:
     global_class_to_be_set_by_henc::
-      "OK - global class set by henc found" ;
+      "OK - global_class_to_be_set_by_henc found" ;
 
     !global_class_to_be_set_by_henc::
-      "NOT OK - global class set by henc not found" ;
+      "NOT OK - global_class_to_be_set_by_henc not found" ;
 
     global_class_to_be_cancelled_by_henc::
-      "NOT OK - global class not cancelled by henc found" ;
+      "NOT OK - global_class_to_be_cancelled_by_henc found" ;
 
     !global_class_to_be_cancelled_by_henc::
-      "OK - global class correctly cancelled by henc" ;
+      "OK - global_class_to_be_cancelled_by_henc not found" ;
+
+    global_class_to_be_lowered::
+      "NOT OK - global_class_to_be_lowered found" ;
+
+    !global_class_to_be_lowered::
+      "OK - global_class_to_be_lowered not found" ;
 
     pass_2_reached.henc_test_scalar_ok::
       "OK - test scalar has the expected value" ;
 
     pass_2_reached.!henc_test_scalar_ok::
       "NOT OK - test scalar has not the expected value" ;
+
+    pass_2_reached.henc_test_list_ok::
+      "OK - test list was slashed by henc" ;
+
+    pass_2_reached.!henc_test_list_ok::
+      "NOT OK - test list was not slashed by henc" ;
 
     pass_3_reached::
       "-----------------------------------------------" ;

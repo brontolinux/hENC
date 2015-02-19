@@ -73,3 +73,14 @@ body perms root_executable
 }
 
 
+########################################################################
+# bodies replicated from the standard library
+
+body delete tidy
+# @brief Delete the file and remove empty directories
+# and links to directories
+{
+      dirlinks => "delete";
+      rmdirs   => "true";
+}
+
