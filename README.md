@@ -40,7 +40,7 @@ then congratulations, you can use hENC on your system.
 If the last line looks like this instead:
 
 ```
-FINAL RESULT: Some tests failed :-(
+R: FINAL RESULT: Some tests failed :-(
 ```
 
 you can either open an issue here, or fork the project, fix the problem and make a pull request.
