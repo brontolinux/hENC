@@ -145,6 +145,7 @@ bundle agent classify
 }
 ```
 
-the file `/var/cfengine/masterfiles/ENC/default` on the policy hub will be copied locally on `/etc/cfengine/ENC/default`; similarly, if the `ntp_server` class is defined the file `/var/cfengine/masterfiles/ENC/ntp_server` will be copied on `/etc/cfengine/ENC/ntp_server`. Finally, the `henc` module will read these two files in that order, build a coherent set of classes and variables and hand them to the agent, and you can use them in other parts of the policy.
+the file `/var/cfengine/masterfiles/ENC/default` on the policy hub will be copied locally on `/etc/cfengine/ENC/default`; similarly, if the `ntp_server` class is defined the file `/var/cfengine/masterfiles/ENC/ntp_server` will be copied on `/etc/cfengine/ENC/ntp_server`. Finally, the `henc` module will read these two files in that order, build a coherent set of classes and variables and hand them to the agent, and you can use them in other parts of the policy. If both files say something about a certain setting, the setting read last is retained and the previous ones discarded -- that's how the hierarchical merging happens in hENC.
+
 
 
