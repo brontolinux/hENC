@@ -4,22 +4,17 @@ bundle common henc_cfg
 {
   vars:
     any::
-      "local_modules"
-	  comment => "Local directory for modules",
-	  string  => "$(def.dir_modules)" ;
-
       "master_modules"
 	  comment => "Source directory for modules",
 	  string  => translatepath("$(def.dir_masterfiles)/modules") ;
 
+      "local_modules"
+	  comment => "Local directory for modules",
+	  string  => "$(def.dir_modules)" ;
+
       "master_enc"
 	  comment => "Base directory for ENC files",
 	  string  => "$(def.dir_masterfiles)" ;
-
-    is_running_henc_tests::
-      "local_enc"
-	  comment => "Local directory for caching ENC files",
-	  string  => "." ;
 
     hasnt_sys_inputdir::
       "local_enc"
@@ -33,7 +28,7 @@ bundle common henc_cfg
 
 
   classes:
-    !is_running_henc_tests::
+    any::
       "has_sys_inputdir"
 	  expression => isvariable("sys.inputdir") ;
 

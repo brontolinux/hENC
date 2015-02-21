@@ -48,3 +48,15 @@ you can either open an issue here, or fork the project, fix the problem and make
 
 ## How do I install hENC on my system? ##
 
+1. copy module/henc in your modules directory
+2. copy module/enc.cf in your masterfiles
+3. either copy lib/henc_lib.cf in your masterfiles, or include its content in your site library, if you have one
+4. edit lib/henc_cfg.cf according to your needs:
+    1. `master_modules` should be set to the directory on the policy hub where you keep your modules;
+    2. `local_modules` should be set to the directory on end nodes where you keep a local copy of the modules;
+    3. `master_enc` should be set to the directory on the policy hub where you will store your ENC files;
+    4. `local_enc` should be set to the directory on end nodes where you will keep a local copy of the ENC files;
+5. copy the so modified henc_cfg.cf in your masterfiles, or include its content in your site library, if you have one;
+6. add all the .cf files to your inputs in `body common control`; you can also put them somewhere in a `body files control` if the version of CFEngine you're using supports it
+
+## How do I use hENC ##
