@@ -68,7 +68,7 @@ you can either open an issue here, or fork the project, fix the problem and make
 
 ## hENC file format ##
 
-Four "primitives" of the module protocol are used in hENC files: `+` to set a global class, `-` to cancel a global class, `=` to set a scalar variable and `@` to set a list variables.
+Four "primitives" of the module protocol are used in hENC files: `+` to set a class, `-` to cancel a class, `=` to set a scalar variable and `@` to set a list variables. The classes will be global in scope, while the variables will be defined in the `henc` context, e.g.: `$(henc.myvar)`, `@(henc.mylist)`.
 
 In addition, we added two primitives:
 * `_` will "lower" a class: the module will forget whatever it knew about that class until then;
@@ -103,4 +103,48 @@ _ntp_client
 Notice how the class `ntp_client` was lowered instead of cancelled: hENC will simply forget about it and won't set anything. If we cancelled it, the agent would have prevented the policy from raising the class again.
 
 ## How do I use hENC? ##
+
+You need to pass the `henc` bundle the fully qualified **name** of a list; the list will contain the files to be read, the path will be relative to `$(henc_cfg.master_enc)` for the source files on the policy hub and to `$(henc_cfg.local_enc)` for the local file. For example, if you have this code:
+
+```
+bundle common henc_cfg
+# configuration for bundle agent henc; edit the variables in this file
+# to suit your needs
+{
+  vars:
+    any::
+      "master_modules"
+	  comment => "Source directory for modules",
+	  string  => "/var/cfengine/masterfiles/modules" ;
+
+      "local_modules"
+	  comment => "Local directory for modules",
+	  string  => "/var/cfengine/modules" ;
+
+      "master_enc"
+	  comment => "Base directory for ENC files",
+	  string  => "/var/cfengine/masterfiles/ENC" ;
+
+      "local_enc"
+	  comment => "Local directory for caching ENC files",
+	  string  => "/etc/cfengine/ENC" ;
+}
+
+bundle agent classify
+{
+  vars:
+    any::
+      "enclist" slist => { "default" }
+
+    ntp_server::
+      "enclist" slist => { @(enclist), "ntp_server" } ;
+
+
+  methods:
+      "ENC" usebundle => henc("classify.enc") ;
+}
+```
+
+the file `/var/cfengine/masterfiles/ENC/default` on the policy hub will be copied locally on `/etc/cfengine/ENC/default`; similarly, if the `ntp_server` class is defined the file `/var/cfengine/masterfiles/ENC/ntp_server` will be copied on `/etc/cfengine/ENC/ntp_server`. Finally, the `henc` module will read these two files in that order, build a coherent set of classes and variables and hand them to the agent, and you can use them in other parts of the policy.
+
 
