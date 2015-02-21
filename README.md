@@ -104,7 +104,7 @@ Notice how the class `ntp_client` was lowered instead of cancelled: hENC will si
 
 ## How do I use hENC? ##
 
-You need to pass the `henc` bundle the fully qualified **name** of a list; the list will contain the files to be read, the path will be relative to `$(henc_cfg.master_enc)` for the source files on the policy hub and to `$(henc_cfg.local_enc)` for the local file. For example, if you have this code:
+You need to pass the `henc` bundle the fully qualified **name** of a list; the list will contain the files to be read and their path will be relative to `$(henc_cfg.master_enc)` for the source files on the policy hub and to `$(henc_cfg.local_enc)` for the local file. For example, if you have this code:
 
 ```
 bundle common henc_cfg
