@@ -1,6 +1,8 @@
 # hENC
 
-A hierachical External Node Classifier (ENC) for CFEngine
+A radically simple hierachical External Node Classifier (ENC) for CFEngine
+
+With just 60 lines of Perl to read and merge settings from plain text files, hENC is probably the simplest external node classifier for CFEngine on the planet. I doubt you can find anything as simple and as flexible and powerful (but if you do please share it because I want to use it!).
 
 **This is work in progress and not yet ready for release**
 
@@ -10,16 +12,9 @@ This ENC system for CFEngine is based on the following components:
 - a configuration for the module, in lib/henc_cfg.cf
 - a CFEngine agent bundle to run the module, you'll find it in module/enc.cf
 - a few CFEngine bodies used in enc.cf, in lib/henc_lib.cf
-- a set of files with classes and variables to represent different systems configurations in your infrastructure
+- a set of text files with classes and variables to represent different systems configurations in your infrastructure
 
-
-Not included in the distribution are text files, whose format is based on CFEngine's module protocol, that are read by the module to set/cancel classes and variables. Of course, you do want to create these files by yourself.
-
-## How does hENC work? ##
-
-You pass a list of specially formatted text files to a bundle, the bundle runs a module that reads the files, merges the information in them to remove conflicts, and sets or unsets classes and variables.
-
-The text files use a subset of CFEngine's module protocol plus a couple of additions. Anything else in the file is ignored.
+The text files, whose format is based on CFEngine's module protocol, are read by the module to set/cancel classes and variables that represent your infrastructure. Of course, you do want to create these files by yourself and they are not included in this distribution. The format of the files is explained below, along with suggestions about how to build your file hierarchy.
 
 
 ## Does it work on my CFEngine installation? ##
@@ -80,7 +75,11 @@ Data (JSON) containers (the `%` primitive in the module protocol) is not impleme
 **Trailing comments or continuation lines are not allowed**: the format is strongly line based.
 
 
-## How do I use hENC? ##
+## How does hENC work? ##
+
+You pass a list of specially formatted text files to a bundle, the bundle runs a module that reads the files, merges the information in them to remove conflicts, and sets or unsets classes and variables.
+
+The text files use a subset of CFEngine's module protocol plus a couple of additions. Anything else in the file is ignored.
 
 ### Build a list of settings' files ###
 
