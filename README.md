@@ -4,8 +4,6 @@ A radically simple hierachical External Node Classifier (ENC) for CFEngine
 
 With just 60 lines of Perl to read and merge settings from plain text files, hENC is probably the simplest external node classifier for CFEngine on the planet. I doubt you can find anything as simple and as flexible and powerful (but if you do please share it because I want to use it!).
 
-**This is work in progress and not yet ready for release**
-
 This ENC system for CFEngine is based on the following components:
 
 - a CFEngine module, you'll find it in module/henc
@@ -185,3 +183,7 @@ When henc will read the first file and then this one, it will "lower" the class 
 
 The final result in ntp1.example.com would be that the classes `ntp_server` and `ntp_unicast` will be set, and the list `henc.ntp_server` will contain a different list of upstream servers.
 
+## More information ##
+
+* The video of my seminar "[the classification problem: challenges and solutions](https://www.youtube.com/watch?v=7Jbq2DCgf0Y)" from FOSDEM'14
+* The [blog post](http://syslog.me/2014/03/10/the-classification-problem-challenges-and-solutions/) with the same name
