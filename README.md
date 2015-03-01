@@ -10,6 +10,7 @@ This ENC system for CFEngine is based on the following components:
 - a configuration for the module, in lib/henc_cfg.cf
 - a CFEngine agent bundle to run the module, you'll find it in module/enc.cf
 - a few CFEngine bodies used in enc.cf, in lib/henc_lib.cf
+- a set of files with classes and variables to represent different systems configurations in your infrastructure
 
 
 Not included in the distribution are text files, whose format is based on CFEngine's module protocol, that are read by the module to set/cancel classes and variables. Of course, you do want to create these files by yourself.
@@ -78,33 +79,58 @@ Data (JSON) containers (the `%` primitive in the module protocol) is not impleme
 
 **Trailing comments or continuation lines are not allowed**: the format is strongly line based.
 
-### Example ###
-
-The following file contains the settings that apply to all systems... almost.
-
-```
-# General settings for all servers
-
-+ntp_client
-+ntp_unicast
-@ntp_servers={ "ntp1.example.com","ntp2.example.com","ntp3.example.com","ntp4.example.com" }
-```
-
-However, on one of your NTP servers you'll want to read this file, too:
-
-```
-# Settings for ntp1.example.com
-
-_ntp_client
-+ntp_server
-@ntp_servers={ "no.pool.ntp.org","se.pool.ntp.org","fi.pool.ntp.org","dk.pool.ntp.org" }
-```
-
-Notice how the class `ntp_client` was lowered instead of cancelled: hENC will simply forget about it and won't set anything. If we cancelled it, the agent would have prevented the policy from raising the class again.
 
 ## How do I use hENC? ##
 
-You need to pass the `henc` bundle the fully qualified **name** of a list; the list will contain the files to be read and their path will be relative to `$(henc_cfg.master_enc)` for the source files on the policy hub and to `$(henc_cfg.local_enc)` for the local file. For example, if you have this code:
+### Build a list of settings' files ###
+
+The most important thing to do is deciding how you will build the list of files containing the settings you want to apply to your systems. It's the most important thing, the rest is just "mechanics".
+
+The system is flexible enough to allow for both static and dynamic lists, or anything in between. Actually, hENC doesn't really care how you build your file list: all it asks is to be passed the fully qualified name of the list itself. The following are just suggestions based on our own experience.
+
+We use configuration management on several datacenters around the world. In each datacenter, there may be different "environments" that require specific settings, for example: machines confined in an "isolated" network segment will probably use different DNS servers than the rest, so having a file to map specific settings based on the environment is probably a good idea. Finally, it's always nice if you can override any specific setting down to the node level, and here you have another good candidate for a file to read.
+
+In short, this means that in a similar setting you need at least four levels:
+
+1. General defaults
+2. Location defaults
+3. Location environment defaults
+4. Node-specific settings
+
+We have found this scheme to work pretty well as long as you don't need to share the first three levels across several different projects. In that case, we found that replicating the first three level into a "project" level gave us a scheme that worked well in this case, too:
+
+1. General defaults
+2. Location defaults
+3. Location environment defaults
+4. Project general defaults
+5. Project defaults for a specific location
+6. Project defaults for a specific environment (e.g.: production, preproduction, testing, development, integration...)
+7. Node-specific settings
+
+Each of these "levels" is mapped to a file name and each file name is added to a list. The fully qualified name of the list is then passed to the `henc` bundle.
+
+
+### Read the files and get the settings ###
+
+You need to pass the `henc` bundle the fully qualified **name** of a list containing the relative paths to your settings' file, their path will be relative to `$(henc_cfg.master_enc)` for the source files on the policy hub and to `$(henc_cfg.local_enc)` for the local copies of the files. E.g., if the full name of the list is "`classify.enc`", that is: a list called `enc` defined in a bundle called `classify`, you'll read the configuration with a methods promise:
+
+```
+  methods:
+    any::
+      "ENC"
+          comment   => "External node classification",
+          usebundle => henc("classify.enc") ;
+```
+
+Once that bundle is evaluated, all the information in the settings' file will be applied and you can use it straight away.
+
+
+## Examples ##
+
+### bundle common henc_cfg ###
+
+The following is a very simple example of a configuration for hENC
+
 
 ```
 bundle common henc_cfg
@@ -114,38 +140,49 @@ bundle common henc_cfg
   vars:
     any::
       "master_modules"
-	  comment => "Source directory for modules",
-	  string  => "/var/cfengine/masterfiles/modules" ;
+        comment => "Source directory for modules",
+        string  => "/var/cfengine/masterfiles/modules" ;
 
       "local_modules"
-	  comment => "Local directory for modules",
-	  string  => "/var/cfengine/modules" ;
+        comment => "Local directory for modules",
+		string  => "/var/cfengine/modules" ;
 
       "master_enc"
-	  comment => "Base directory for ENC files",
-	  string  => "/var/cfengine/masterfiles/ENC" ;
+        comment => "Base directory for ENC files",
+        string  => "/var/cfengine/masterfiles/ENC" ;
 
       "local_enc"
-	  comment => "Local directory for caching ENC files",
-	  string  => "/etc/cfengine/ENC" ;
-}
-
-bundle agent classify
-{
-  vars:
-    any::
-      "enclist" slist => { "default" }
-
-    ntp_server::
-      "enclist" slist => { @(enclist), "ntp_server" } ;
-
-
-  methods:
-      "ENC" usebundle => henc("classify.enc") ;
+        comment => "Local directory for caching ENC files",
+        string  => "/etc/cfengine/ENC" ;
 }
 ```
 
-the file `/var/cfengine/masterfiles/ENC/default` on the policy hub will be copied locally on `/etc/cfengine/ENC/default`; similarly, if the `ntp_server` class is defined the file `/var/cfengine/masterfiles/ENC/ntp_server` will be copied on `/etc/cfengine/ENC/ntp_server`. Finally, the `henc` module will read these two files in that order, build a coherent set of classes and variables and hand them to the agent, and you can use them in other parts of the policy. If both files say something about a certain setting, the setting read last is retained and the previous ones discarded -- that's how the hierarchical merging happens in hENC.
+With these settings and a settings' files list containing, e.g., just one item "default", the file `/var/cfengine/masterfiles/ENC/default` on the policy hub will be copied locally on `/etc/cfengine/ENC/default` and then read by the module. If, for example, we are on an NTP server that needs special settings, the list may contain both "default" and "ntp_server". In that case the file `/var/cfengine/masterfiles/ENC/ntp_server` will also be copied to `/etc/cfengine/ENC/ntp_server`, the `henc` module will read these two files in that order, build a coherent set of classes and variables and hand them to the agent, and you can use them in other parts of the policy. If both files say something about a certain setting, the setting read last is retained and the previous ones discarded -- that's how the hierarchical merging happens in hENC.
 
 
+### Settings' files ###
+
+The following file will set two global classes: `ntp_client` and `ntp_unicast`, and a list called ntp_servers that will be created in the context `henc` (named after the module's name). The fully qualified name will then be `henc.ntp_servers`:
+
+```
+# General settings for all servers
+
++ntp_client
++ntp_unicast
+@ntp_servers={ "ntp1.example.com","ntp2.example.com","ntp3.example.com","ntp4.example.com" }
+```
+
+On one of your NTP servers you'll want to override those settings and provide a differenent list of upstreams. You could have this file read adter the previous one:
+
+```
+# Settings for ntp1.example.com
+
+_ntp_client
++ntp_server
+@ntp_servers={ "no.pool.ntp.org","se.pool.ntp.org","fi.pool.ntp.org","dk.pool.ntp.org" }
+```
+
+When henc will read the first file and then this one, it will "lower" the class `ntp_client`: the module will simply forget about it and won't set anything. Notice that if we cancelled it, the agent would have prevented the policy from raising the class again.
+
+The final result in ntp1.example.com would be that the classes `ntp_server` and `ntp_unicast` will be set, and the list `henc.ntp_server` will contain a different list of upstream servers.
 
