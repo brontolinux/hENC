@@ -185,5 +185,6 @@ The final result in ntp1.example.com would be that the classes `ntp_server` and 
 
 ## More information ##
 
-* The video of my seminar "[the classification problem: challenges and solutions](https://www.youtube.com/watch?v=7Jbq2DCgf0Y)" from FOSDEM'14
+* The video of my seminar "[the classification problem: challenges and solutions](https://www.youtube.com/watch?v=7Jbq2DCgf0Y)" from FOSDEM'14 ([slides available](https://speakerdeck.com/brontolinux/the-classification-problems-challenges-and-solutions) on SpeakerDeck)
 * The [blog post](http://syslog.me/2014/03/10/the-classification-problem-challenges-and-solutions/) with the same name
+* The updated [full slides set](https://speakerdeck.com/brontolinux/the-classification-problem-challenges-and-solutions-ed-2015), presented at this year's [Software 2015](http://sched.co/25zY) in Oslo.
