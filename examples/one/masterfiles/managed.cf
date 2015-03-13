@@ -1,4 +1,4 @@
-bundle agent updateMOTD {
+bundle agent managed {
 	vars:
 		"motd" string => "/etc/motd";
 	files:
