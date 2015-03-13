@@ -1,0 +1,18 @@
+bundle agent sample {
+
+	vars:
+		"base"
+			comment     =>      "Build the ENC clist",
+			policy		=>		"free",
+			slist 		=> 		{ "default" };
+
+	methods:
+		any::
+			"ENC"
+				comment   => "External node classification",
+				usebundle => henc("sample.base");
+
+		updateMOTD::
+			"updateMOTD" usebundle => updateMOTD;
+
+}
