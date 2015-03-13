@@ -1,18 +1,20 @@
 # hENC
 
-A radically simple hierachical External Node Classifier (ENC) for CFEngine
+####A radically simple hierachical External Node Classification (ENC) system for CFEngine####
 
 With just 60 lines of Perl to read and merge settings from plain text files, hENC is probably the simplest external node classifier for CFEngine on the planet. I doubt you can find anything as simple and as flexible and powerful (but if you do please share it because I want to use it!).
 
-This ENC system for CFEngine is based on the following components:
+The hENC system for CFEngine revolves around the **henc** module, with these surrounding components:
 
-- a CFEngine module, you'll find it in module/henc
-- a configuration for the module, in lib/henc_cfg.cf
-- a CFEngine agent bundle to run the module, you'll find it in module/enc.cf
-- a few CFEngine bodies used in enc.cf, in lib/henc_lib.cf
-- a set of text files with classes and variables to represent different systems configurations in your infrastructure
+- your text files with classes and variables to represent the different systems configurations in your infrastructure
+- an agent bundle [enc.cf] which does all the file copying and ensures the file list before handing off to the henc module
+- a configuration [henc_cfg.cf] file which describes the [hub] source and [client] destination directories to be used
+- a library [henc_lib.cf] which manages the compare/copy operations and the module execution permissions
+- the henc module itself, which parses all of the plain text files and assembles the appropriate list of settings
 
-The text files, whose format is based on CFEngine's module protocol, are read by the module to set/cancel classes and variables that represent your infrastructure. Of course, you do want to create these files by yourself and they are not included in this distribution. The format of the files is explained below, along with suggestions about how to build your file hierarchy.
+The text files, whose format is explained below, are read by the hENC system to set/cancel classes and variables that represent your infrastructure. 
+
+You then configure your promises library to execute dynamically depending on the specific configurations of classes and variables that result from each separate execution of the hENC system.  
 
 
 ## Does it work on my CFEngine installation? ##
@@ -36,7 +38,7 @@ R: -----------------------------------------------
 R: FINAL RESULT: ALL TESTS SUCCESSFUL!
 ```
 
-then congratulations, you can use hENC on your system.
+Then congratulations, you can use hENC on your system.
 
 If the last line looks like this instead:
 
@@ -44,23 +46,42 @@ If the last line looks like this instead:
 R: FINAL RESULT: Some tests failed :-(
 ```
 
-you can either open an issue here, or fork the project, fix the problem and make a pull request.
+If you run into problems/bugs you can open an issue here.  
+
+If fix any problems/bugs then please fork the project and make a pull request so that I can incorporate your changes.
 
 
 ## How do I install hENC on my system? ##
 
-1. copy module/henc in your modules directory
-2. copy module/enc.cf in your masterfiles
-3. either copy lib/henc_lib.cf in your masterfiles, or include its content in your site library, if you have one
-4. edit lib/henc_cfg.cf according to your needs:
+(these instructions assume you are using the standard configuration, detailed in henc_cfg.cf)
+
+1. create a masterfiles/ENC directory and place your [plain text] settings files here
+2. copy module/henc into a masterfiles/modules directory (create the modules dir if you don't have one already)
+3. copy module/enc.cf into the masterfiles directory
+4. copy lib/henc_lib.cf into the masterfiles directory (or include its content in your site library, if you have one)
+5. copy lib/henc_cfg.cf into the masterfiles directory (or include its content in your site library, if you have one)
+6. ensure that all of your .cf files are listed as inputs in masterfiles/promises.cf -- hENC will not do this for you.
+
+Remember: hENC will not exe: henc 
+sets/cancels classes and sets variables, that's it. It's up to you to 
+make good use of them. 
+
+These options are for more advanced usage:
+
+* if you have a site library then store the henc_lib.cf & henc_cfg.cf files in there instea of your masterfiles directory
+* if the version of CFEngine you're using supports it, you can list your .cf files elsewhere in a `body files control` bundle
+* the henc_cfg.cf file can be modified according to your needs:
     1. `master_modules` should be set to the directory on the policy hub where you keep your modules;
     2. `local_modules` should be set to the directory on end nodes where you keep a local copy of the modules;
     3. `master_enc` should be set to the directory on the policy hub where you will store your ENC files;
     4. `local_enc` should be set to the directory on end nodes where you will keep a local copy of the ENC files;
-5. copy the so modified henc_cfg.cf in your masterfiles, or include its content in your site library, if you have one;
-6. add all the .cf files to your inputs in `body common control`; you can also put them somewhere in a `body files control` if the version of CFEngine you're using supports it
+
+Final Note: the henc module is written in perl, so you must have perl installed on any machine that will try to execute it.  If the henc module fails with an error [1] 
+
 
 ## hENC file format ##
+
+The text files use a subset of CFEngine's module protocol plus a couple of additions. Anything else in the file is ignored.
 
 Four "primitives" of the module protocol are used in hENC files: `+` to set a class, `-` to cancel a class, `=` to set a scalar variable and `@` to set a list variables. The classes will be global in scope, while the variables will be defined in the `henc` context, e.g.: `$(henc.myvar)`, `@(henc.mylist)`.
 
@@ -68,16 +89,17 @@ In addition, we added two primitives:
 * `_` will "lower" a class: the module will forget whatever it knew about that class until then;
 * `/` will "slash" a variable (list or scalar): the module will forget whatever it knew about that variable until then.
 
-Data (JSON) containers (the `%` primitive in the module protocol) is not implemented because we haven't completed the transition to CFEngine 3.6.x. However, a glance at the code should be enough to make you realize that implementing data containers in hENC is straightforward.
+Data (JSON) containers (the `%` primitive in the module protocol) is not yet implemented because we haven't completed the transition to CFEngine 3.6.x.  Please feel free to fortk the project and contribute an implementation supporting data containers if you can!
 
-**Trailing comments or continuation lines are not allowed**: the format is strongly line based.
+Note that in this version **Trailing comments or continuation lines are not allowed** as the format is line based.
 
 
 ## How does hENC work? ##
 
 You pass a list of specially formatted text files to a bundle, the bundle runs a module that reads the files, merges the information in them to remove conflicts, and sets or unsets classes and variables.
 
-The text files use a subset of CFEngine's module protocol plus a couple of additions. Anything else in the file is ignored.
+hENC will read the files in the order they are given in the list, build a coherent set of classes and variables and hand them to the agent.  If more than one file controls the same class or variable, the setting read last is retained and the previous ones discarded.
+
 
 ### Build a list of settings' files ###
 
@@ -87,14 +109,14 @@ The system is flexible enough to allow for both static and dynamic lists, or any
 
 We use configuration management on several datacenters around the world. In each datacenter, there may be different "environments" that require specific settings, for example: machines confined in an "isolated" network segment will probably use different DNS servers than the rest, so having a file to map specific settings based on the environment is probably a good idea. Finally, it's always nice if you can override any specific setting down to the node level, and here you have another good candidate for a file to read.
 
-In short, this means that in a similar setting you need at least four levels:
+We have found a scheme of four levels to be sufficient for most needs:
 
 1. General defaults
 2. Location defaults
 3. Location environment defaults
 4. Node-specific settings
 
-We have found this scheme to work pretty well as long as you don't need to share the first three levels across several different projects. In that case, we found that replicating the first three level into a "project" level gave us a scheme that worked well in this case, too:
+As long as you don't need to share the first three levels across several different projects it works well. In that case, we found that replicating the first three level into a "project" level gave us a scheme that worked well:
 
 1. General defaults
 2. Location defaults
@@ -109,25 +131,89 @@ Each of these "levels" is mapped to a file name and each file name is added to a
 
 ### Read the files and get the settings ###
 
-You need to pass the `henc` bundle the fully qualified **name** of a list containing the relative paths to your settings' file, their path will be relative to `$(henc_cfg.master_enc)` for the source files on the policy hub and to `$(henc_cfg.local_enc)` for the local copies of the files. E.g., if the full name of the list is "`classify.enc`", that is: a list called `enc` defined in a bundle called `classify`, you'll read the configuration with a methods promise:
+You need to pass the `henc` bundle the fully qualified **name** of a list containing the relative paths to your settings' file, E.g., if the full name of the list is "`classify.enc`", that is: a list called `enc` defined in a bundle called `classify`, you'll read the configuration with a methods promise:
 
 ```
-  methods:
-    any::
-      "ENC"
-          comment   => "External node classification",
-          usebundle => henc("classify.enc") ;
+bundle agent classify {
+	vars:
+		"enc"
+			slist 		=> 		{ "henc.default" };
+	methods:
+		any::
+			"ENC"
+				usebundle => henc("classify.enc");
+}
 ```
 
-Once that bundle is evaluated, all the information in the settings' file will be applied and you can use it straight away.
+Once the bundle is evaluated, all the information in the settings' file will be applied and you can use the classes and variables from it's results straight away.
+
+The paths to these text files will be automatically constructed relative to `$(henc_cfg.master_enc)` for the source files on the policy hub and to `$(henc_cfg.local_enc)` for the local copies of the files -- you do not need to (and should not) specify these paths. 
 
 
 ## Examples ##
 
+
+The following is a very simple example of a usage of hENC (the files are in ./examples/one
+
+*(Note that some of the hENC files are symlinks, git will return them as text files containing pathnames of the targets on those systems that do not support symlinks.)*
+
+### masterfiles/ENC/henc.default ###
+
+For purposes of this sample we will use one text file [ENC/henc.default] which will raise a class [updateMOTD] that we will use to trigger an updated of the /etc/motd file whose contents are displayed to [*nix] terminal login sessions.
+
+```
++updateMOTD
+```
+
+### masterfiles/managed.cf ###
+
+This bundle will modify the /etc/motd file to include the line: "This system is being actively managed by CFEngine"
+
+```
+bundle agent managed {
+	vars:
+		"motd" string => "/etc/motd";
+	files:
+		"$(motd)"
+			create => "true",
+			edit_line => addmessage;
+}
+
+bundle edit_line addmessage {
+	delete_lines:
+		".*CFEngine.*";
+	insert_lines:
+		"This system is being actively managed by CFEngine";
+}
+```
+
+### masterfiles/sample.cf ###
+
+For purposes of this demo we will do both: create and hand a simple list to the henc module; and also evaluate a promise that will execute the managed.cf bundle that will update the /etc/motd file. 
+
+More complex and indirect usages of hENC would not combine these actions.
+
+```
+bundle agent sample {
+	vars:
+		"base"
+			comment     =>      "all systems use these defaults",
+			policy		=>		"free",
+			slist 		=> 		{ "default" };
+	methods:
+		any::
+			"ENC"
+				comment   => "External node classification",
+				usebundle => henc("sample.base");
+		updateMOTD::
+			"updateMOTD" usebundle => managed;
+}
+```
+
+
 ### bundle common henc_cfg ###
 
-The following is a very simple example of a configuration for hENC
-
+These is the configuration for this sample
 
 ```
 bundle common henc_cfg
@@ -154,10 +240,20 @@ bundle common henc_cfg
 }
 ```
 
-With these settings and a settings' files list containing, e.g., just one item "default", the file `/var/cfengine/masterfiles/ENC/default` on the policy hub will be copied locally on `/etc/cfengine/ENC/default` and then read by the module. If, for example, we are on an NTP server that needs special settings, the list may contain both "default" and "ntp_server". In that case the file `/var/cfengine/masterfiles/ENC/ntp_server` will also be copied to `/etc/cfengine/ENC/ntp_server`, the `henc` module will read these two files in that order, build a coherent set of classes and variables and hand them to the agent, and you can use them in other parts of the policy. If both files say something about a certain setting, the setting read last is retained and the previous ones discarded -- that's how the hierarchical merging happens in hENC.
+### the resulting actions ###
 
+- the sample.cf policy built and passed a list to the henc agent
 
-### Settings' files ###
+- the text file raises the class updateMOTD using the '+' sign
+- the henc agent copies the text file to the agents and builds a list with that one class 
+- (the config file described where the file was to be copied)
+- (the library managed the compare/copy operations and ensured the henc modules execution permissions)
+- the henc module parsed that single file and defined the class updateMOTD 
+
+- the sample.cf bundle saw the defined class upateMOTD and executed the managed.cf policy
+- 
+
+## a more involved example ##
 
 The following file will set two global classes: `ntp_client` and `ntp_unicast`, and a list called ntp_servers that will be created in the context `henc` (named after the module's name). The fully qualified name will then be `henc.ntp_servers`:
 
