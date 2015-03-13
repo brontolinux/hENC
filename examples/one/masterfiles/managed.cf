@@ -1,0 +1,16 @@
+bundle agent managed {
+	vars:
+		"motd" string => "/etc/motd";
+	files:
+		"$(motd)"
+			create => "true",
+			comment => "announce this system as a CFEngine managed system",
+			edit_line => addmessage;
+}
+
+bundle edit_line addmessage {
+	delete_lines:
+		".*CFEngine.*";
+	insert_lines:
+		"This system is being actively managed by CFEngine";
+}

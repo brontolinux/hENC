@@ -1,0 +1,22 @@
+bundle common henc_cfg
+# configuration for bundle agent henc; edit the variables in this file
+# to suit your needs
+{
+  vars:
+    any::
+      "master_modules"
+        comment => "Source directory for modules",
+        string  => "/var/cfengine/masterfiles/modules" ;
+
+      "local_modules"
+        comment => "Local directory for modules",
+        string  => "/var/cfengine/modules" ;
+
+      "master_enc"
+        comment => "Base directory for ENC files",
+        string  => "/var/cfengine/masterfiles/ENC" ;
+
+      "local_enc"
+        comment => "Local directory for caching ENC files",
+        string  => "/etc/cfengine/ENC" ;
+}
