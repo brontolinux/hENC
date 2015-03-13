@@ -19,7 +19,7 @@ The text files, whose format is based on CFEngine's module protocol, are read by
 
 Clone the repository, get into the directory and run
 
-`sudo -u root cf-agent -Kf henc_test.cf`
+`sudo -u root cf-agent -Kf ./henc_test.cf`
 
 If you run CFEngine with a user other than root, then replace root in the command line above with the appropriate user name.
 
