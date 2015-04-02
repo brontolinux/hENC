@@ -196,7 +196,7 @@ bundle edit_line addmessage {
 
 ### masterfiles/sample.cf ###
 
-The bundle agent sample in thiss file  will create and hand a simple list to the henc module and also apply a promise that will evaluate bundle agent manage that, in turn, will update the `/etc/motd` file. 
+The bundle agent sample in this file  will create and hand a simple list to the henc module and also apply a promise that will evaluate bundle agent managed that, in turn, will update the `/etc/motd` file. 
 
 ```
 bundle agent sample {
