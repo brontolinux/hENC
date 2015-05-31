@@ -85,13 +85,11 @@ The hENC system is now ready to be used, but nothing will happen if you don't ac
 
 The text files use a subset of CFEngine's module protocol plus a couple of additions. Anything else in the file is ignored.
 
-Four "primitives" of the module protocol are used in hENC files: `+` to set a class, `-` to cancel a class, `=` to set a scalar variable and `@` to set a list variables. The classes will be global in scope, while the variables will be defined in the `henc` context, e.g.: `$(henc.myvar)`, `@(henc.mylist)`.
+Four "primitives" of the module protocol are used in hENC files: `+` to set a class, `-` to cancel a class, `=` to set a scalar variable, `@` to set a list variables and `%` to set a data container variable in JSON format. The classes will be global in scope, while the variables will be defined in the `henc` context, e.g.: `$(henc.myvar)`, `@(henc.mylist)`.
 
 In addition, we added two primitives:
 * `_` will "lower" a class: the module will forget whatever it knew about that class until then;
 * `/` will "slash" a variable (list or scalar): the module will forget whatever it knew about that variable until then.
-
-Data (JSON) containers (the `%` primitive in the module protocol) is not yet implemented because we haven't completed the transition to CFEngine 3.6.x.  Please feel free to fork the project and contribute an implementation supporting data containers if you can!
 
 Note that in this version **Trailing comments or continuation lines are not allowed** as the format is line based.
 

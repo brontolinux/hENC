@@ -11,7 +11,7 @@ close STDERR ;
 
 while (my $line = <>) {
     chomp $line ;
-    my ($setting,$id) = ( $line =~ m{^\s*([=\@/+-_])(.+)\s*$} ) ;
+    my ($setting,$id) = ( $line =~ m{^\s*([=\@%/+-_])(.+)\s*$} ) ;
     next if not defined $setting ; # line didn't match the module protocol
 
     # add a class
@@ -33,7 +33,7 @@ while (my $line = <>) {
     }
 
     # define a variable/list
-    if ($setting eq '=' or $setting eq '@') {
+    if ($setting eq '=' or $setting eq '@' or $setting eq '%') {
 	# $id is "variable = something", or should be
 	my ($varname)      = ( $id =~ m{^(.+?)=} ) ;
 	$variable{$varname} = $line ;
