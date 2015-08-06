@@ -11,8 +11,25 @@ close STDERR ;
 
 while (my $line = <>) {
     chomp $line ;
-    my ($setting,$id) = ( $line =~ m{^\s*([=\@%/+-_])(.+)\s*$} ) ;
-    next if not defined $setting ; # line didn't match the module protocol
+    my ($setting,$id) = ( $line =~ m{^\s*([=\@%+-/_!])(.+)\s*$} ) ;
+    next if not defined $setting ; # line didn't match our extended module protocol
+    # take a command
+    if ($setting eq '!') {
+	if ($id eq 'RESET_ALL_CLASSES') {
+	    # flush the class cache
+	    undef %class ;
+	}
+
+	elsif ($id eq 'RESET_ACTIVE_CLASSES') {
+	    my @active_classes = grep { $class{$_} > 0 } keys %class ;
+	    delete @class{@active_classes} ;
+	}
+
+	elsif ($id eq 'RESET_CANCELLED_CLASSES') {
+	    my @cancelled_classes = grep { $class{$_} < 0 } keys %class ;
+	    delete @class{@cancelled_classes} ;
+	}
+    }
 
     # add a class
     if ($setting eq '+') {
@@ -49,6 +66,7 @@ while (my $line = <>) {
 }
 
 # print out classes
+$class{henc_classification_completed} = 1 ;
 foreach my $classname (keys %class) {
     print "+$classname\n" if $class{$classname} > 0 ;
     print "-$classname\n" if $class{$classname} < 0 ;

@@ -2,7 +2,7 @@
 
 A radically simple hierachical External Node Classifier (ENC) for CFEngine
 
-With just 60 lines of Perl to read and merge settings from plain text files, hENC is probably the simplest external node classifier for CFEngine on the planet. I doubt you can find anything as simple and as flexible and powerful (but if you do please share it because I want to use it!).
+With just 78 lines of Perl to read and merge settings from plain text files, hENC is probably the simplest external node classifier for CFEngine on the planet. I doubt you can find anything as simple and as flexible and powerful (but if you do please share it because I want to use it!).
 
 Since the henc module is written in Perl, you must have a working Perl installation on any machine where you want to use it. If you forget about that, you'll probably get an error.
 
@@ -32,27 +32,20 @@ If you run CFEngine with a user other than root, then replace root in the comman
 If the output looks like this:
 
 ```
-bronto@murray:~/Lab/hENC$ sudo -u root cf-agent -Kf ./henc_test.cf 
+bronto@murray:~/Lab/hENC$ sudo cf-agent -Kf ./henc_test.cf 
 R: OK - global_class_to_be_set_by_henc found
 R: OK - global_class_to_be_cancelled_by_henc not found
 R: OK - global_class_to_be_lowered not found
 R: OK - test scalar has the expected value
 R: OK - test list was slashed by henc
-R: -----------------------------------------------
-R: FINAL RESULT: ALL TESTS SUCCESSFUL!
+R: OK - active classes correctly reset
+R: OK - cancelled classes correctly reset
+R: OK - all classes in ENC correctly reset
 ```
 
-then congratulations, you can use hENC on your system.
+that is: with all OK and no "NOT OK", then congratulations: you can use hENC on your system.
 
-If the last line looks like this instead:
-
-```
-R: FINAL RESULT: Some tests failed :-(
-```
-
-If you run into problems/bugs you can open an issue here.
-
-If fix any problems/bugs then please fork the project and make a pull request so that I can incorporate your changes.
+If you got any "NOT OK" you either have a broken configuration or you have discovered a bug. To have it fixed, please open an issue on GitHub or, if you rather want to fix any problems/bugs yourself, then please fork the project and make a pull request so that I can incorporate your changes.
 
 
 ## How do I install hENC on my system? ##
@@ -85,13 +78,20 @@ The hENC system is now ready to be used, but nothing will happen if you don't ac
 
 The text files use a subset of CFEngine's module protocol plus a couple of additions. Anything else in the file is ignored.
 
-Four "primitives" of the module protocol are used in hENC files: `+` to set a class, `-` to cancel a class, `=` to set a scalar variable, `@` to set a list variables and `%` to set a data container variable in JSON format. The classes will be global in scope, while the variables will be defined in the `henc` context, e.g.: `$(henc.myvar)`, `@(henc.mylist)`.
+Five "primitives" of the module protocol are used in hENC files: `+` to set a class, `-` to cancel a class, `=` to set a scalar variable, `@` to set a list variables and `%` to set a data container variable in JSON format. The classes will be global in scope, while the variables will be defined in the `henc` context, e.g.: `$(henc.myvar)`, `@(henc.mylist)`.
 
-In addition, we added two primitives:
+In addition, we added three primitives:
 * `_` will "lower" a class: the module will forget whatever it knew about that class until then;
-* `/` will "slash" a variable (list or scalar): the module will forget whatever it knew about that variable until then.
+* `/` will "slash" a variable (list or scalar): the module will forget whatever it knew about that variable until then;
+* `!` prefixes a command, see below for details
 
 Note that in this version **Trailing comments or continuation lines are not allowed** as the format is line based.
+
+Starting from version 3, three commands have been added to hENC to allow you to do some special operations that were not possible before. hENC commands are prefixed by an exclamation mark and can be added in files at any point, just like any other directive. They are the following:
+
+* `!RESET_ACTIVE_CLASSES` makes hENC forget about any class that it was asked to activate;
+* `!RESET_CANCELLED_CLASSES` makes hENC forget about any class that it was asked to cancel;
+* `!RESET_ALL_CLASSES` makes hENC forget about any class it was asked to activate or cancel.
 
 
 ## How does hENC work? ##
@@ -99,6 +99,8 @@ Note that in this version **Trailing comments or continuation lines are not allo
 You pass a list of specially formatted text files to a bundle, the bundle runs a module that reads the files, merges the information in them to remove conflicts, and sets or unsets classes and variables.
 
 hENC will read the files in the order they are given in the list, build a coherent set of classes and variables and hand them to the agent.  If more than one file controls the same class or variable, the setting read last is retained and the previous ones discarded.
+
+hENC will also set a class `henc_classification_completed` you can test for to detect if it ran properly.
 
 
 ### Build a list of settings' files ###

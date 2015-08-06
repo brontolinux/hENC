@@ -1,0 +1,13 @@
+# Changelog for hENC
+
+## 2015-08-06
+
+* Added `!` commands
+* fixed a bug in `enc.cf` that didn't allow hENC to run more than once per agent run
+* a class `henc_classification_completed` is added for each successful run of hENC
+
+## 2015-05-31 15:37:10
+Added support for data containers
+
+## 2015-03-03 08:26:08
+first official release
