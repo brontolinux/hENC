@@ -32,20 +32,42 @@ If you run CFEngine with a user other than root, then replace root in the comman
 If the output looks like this:
 
 ```
-bronto@murray:~/Lab/hENC$ sudo cf-agent -Kf ./henc_test.cf 
-R: OK - global_class_to_be_set_by_henc found
-R: OK - global_class_to_be_cancelled_by_henc not found
-R: OK - global_class_to_be_lowered not found
-R: OK - test scalar has the expected value
-R: OK - test list was slashed by henc
-R: OK - active classes correctly reset
-R: OK - cancelled classes correctly reset
-R: OK - all classes in ENC correctly reset
+bronto@murray:~/Lab/hENC$ sudo cf-agent -KC -f ./henc_test.cf 
+R: 
+1..8
+R: 
+ok - global_class_to_be_set_by_henc found
+R: 
+ok -1 global_class_to_be_cancelled_by_henc not found
+R: 
+ok - global_class_to_be_lowered not found
+R: 
+ok - test scalar has the expected value
+R: 
+ok - test list was slashed by henc
+R: 
+ok - active classes correctly reset
+R: 
+ok - cancelled classes correctly reset
+R: 
+ok - all classes in ENC correctly reset
 ```
 
-that is: with all OK and no "NOT OK", then congratulations: you can use hENC on your system.
+that is: with all "ok" and no "not ok", then congratulations: you can use hENC on your system.
 
-If you got any "NOT OK" you either have a broken configuration or you have discovered a bug. To have it fixed, please open an issue on GitHub or, if you rather want to fix any problems/bugs yourself, then please fork the project and make a pull request so that I can incorporate your changes.
+If you got any "not ok" you either have a broken configuration or you have discovered a bug. To have it fixed, please open an issue on GitHub or, if you rather want to fix any problems/bugs yourself, then please fork the project and make a pull request so that I can incorporate your changes.
+
+You may notice that the output is formatted in a special way. In fact, the tests are now compatible with the TAP protocol. If you have the `prove` command you could also run this:
+
+```
+bronto@murray:~/Lab/hENC$ prove --exec "sudo cf-agent -KC -f" ./henc_test.cf 
+./henc_test.cf .. ok   
+All tests successful.
+Files=1, Tests=8,  0 wallclock secs ( 0.03 usr  0.00 sys +  0.07 cusr  0.00 csys =  0.10 CPU)
+Result: PASS
+```
+
+Thanks to Neil Watson for [a great idea](https://groups.google.com/d/msg/help-cfengine/TCTN1UzqQY0/vlr3BlTQEgAJ)
 
 
 ## How do I install hENC on my system? ##

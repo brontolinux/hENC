@@ -12,16 +12,21 @@ body common control
 
 bundle agent henc_test
 {
+  vars:
+      "tests" int => "8" ;
+      
   files:
       "$(henc_cfg.testdir)/."
 	  comment => "Prepare test directory",
 	  create => "yes" ;
 
   methods:
-      "basic"    usebundle => henc_test_basic ;
-      "commands" usebundle => henc_test_commands ;
+      "tap_banner" usebundle => henc_tap_banner($(tests)) ;
+      "basic"      usebundle => henc_test_basic ;
+      "commands"   usebundle => henc_test_commands ;
 }
 
+bundle agent henc_tap_banner(n) { reports: "$(const.n)1..$(n)" ; }
 
 bundle agent henc_test_basic
 {
@@ -64,34 +69,34 @@ bundle agent henc_test_basic
 
   reports:
     global_class_to_be_set_by_henc::
-      "OK - global_class_to_be_set_by_henc found" ;
+      "$(const.n)ok - global_class_to_be_set_by_henc found" ;
 
     !global_class_to_be_set_by_henc::
-      "NOT OK - global_class_to_be_set_by_henc not found" ;
+      "$(const.n)not ok - global_class_to_be_set_by_henc not found" ;
 
     global_class_to_be_cancelled_by_henc::
-      "NOT OK - global_class_to_be_cancelled_by_henc found" ;
+      "$(const.n)not ok - global_class_to_be_cancelled_by_henc found" ;
 
     !global_class_to_be_cancelled_by_henc::
-      "OK - global_class_to_be_cancelled_by_henc not found" ;
+      "$(const.n)ok -1 global_class_to_be_cancelled_by_henc not found" ;
 
     global_class_to_be_lowered::
-      "NOT OK - global_class_to_be_lowered found" ;
+      "$(const.n)not ok - global_class_to_be_lowered found" ;
 
     !global_class_to_be_lowered::
-      "OK - global_class_to_be_lowered not found" ;
+      "$(const.n)ok - global_class_to_be_lowered not found" ;
 
     pass_2_reached.henc_test_scalar_ok::
-      "OK - test scalar has the expected value" ;
+      "$(const.n)ok - test scalar has the expected value" ;
 
     pass_2_reached.!henc_test_scalar_ok::
-      "NOT OK - test scalar has not the expected value" ;
+      "$(const.n)not ok - test scalar has not the expected value" ;
 
     pass_2_reached.henc_test_list_ok::
-      "OK - test list was slashed by henc" ;
+      "$(const.n)ok - test list was slashed by henc" ;
 
     pass_2_reached.!henc_test_list_ok::
-      "NOT OK - test list was not slashed by henc" ;
+      "$(const.n)not ok - test list was not slashed by henc" ;
 }
 
 
@@ -151,10 +156,10 @@ bundle agent henc_test_reset_active
 
   reports:
     pass_2_reached.test_ok::
-      "OK - active classes correctly reset" ;
+      "$(const.n)ok - active classes correctly reset" ;
 
     pass_2_reached.!test_ok::
-      "NOT OK - active classes not reset" ;
+      "$(const.n)not ok - active classes not reset" ;
 }
 
 
@@ -208,10 +213,10 @@ bundle agent henc_test_reset_cancelled
 
   reports:
     pass_2_reached.test_ok::
-      "OK - cancelled classes correctly reset" ;
+      "$(const.n)ok - cancelled classes correctly reset" ;
 
     pass_2_reached.!test_ok::
-      "NOT OK - cancelled classes not reset" ;
+      "$(const.n)not ok - cancelled classes not reset" ;
 }
 
 
@@ -268,8 +273,8 @@ bundle agent henc_test_reset_all
 
   reports:
     pass_2_reached.test_ok::
-      "OK - all classes in ENC correctly reset" ;
+      "$(const.n)ok - all classes in ENC correctly reset" ;
 
     pass_2_reached.!test_ok::
-      "NOT OK - all classes in ENC not correctly reset" ;
+      "$(const.n)not ok - all classes in ENC not correctly reset" ;
 }
