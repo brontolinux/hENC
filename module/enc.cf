@@ -39,20 +39,20 @@ bundle agent henc(enclist_name)
   files:
     any::
       "$(henc_cfg.local_modules)/henc"
-	  comment   => "Copy/update hierarchical merger",
 	  copy_from => digest_cp("$(henc_cfg.master_modules)/henc"),
-	  perms     => root_executable ;
+	  perms     => root_executable,
+	  comment   => "Copy/update hierarchical merger" ;
 
     henc_has_list::
       "$(henc_cfg.local_enc)/$(enclist)"
-	  comment   => "Cache ENC file $(enclist) locally",
-	  copy_from => digest_cp("$(henc_cfg.master_enc)/$(enclist)") ;
+	  copy_from => digest_cp("$(henc_cfg.master_enc)/$(enclist)"),
+	  comment   => "Cache ENC file $(enclist) locally" ;
 
 
   commands:
     henc_can_classify::
       "$(henc_cfg.local_modules)/henc"
-	  comment    => "Hierarchical classification for $(sys.fqhost)",
 	  args       => "$(encargs)",
-	  module     => "true" ;
+	  module     => "true",
+	  comment    => "Hierarchical classification for $(sys.fqhost)" ;
 }
